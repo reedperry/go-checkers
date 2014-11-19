@@ -7,13 +7,13 @@ type Move struct {
 }
 
 type Square struct {
-	row, col uint8
+	row, col int8
 }
 
 func (move *Move) getDirection() Direction {
 	if move.start.row < move.finish.row {
-		return DIRECTION_UP
+		return RED_FORWARD
 	} else {
-		return DIRECTION_DOWN
+		return BLACK_FORWARD
 	}
 }

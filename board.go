@@ -5,19 +5,19 @@ import "fmt"
 const EMPTY = 0
 const BLACK = 1
 const RED = 2
-const RED_KING = 3
-const BLACK_KING = 4
+const BLACK_KING = 3
+const RED_KING = 4
 
 const SIZE = 8
 
 type Board struct {
-	state [SIZE][SIZE]uint8
+	state [SIZE][SIZE]int8
 }
 
 func (board *Board) NewGame() {
 	fmt.Println("Starting new game...")
 
-	var row, col uint8
+	var row, col int8
 	for row = 0; row < SIZE; row++ {
 		for col = 0; col < SIZE; col++ {
 			if row == 3 || row == 4 || (row+col)%2 == 0 {
@@ -30,14 +30,14 @@ func (board *Board) NewGame() {
 }
 
 func (board *Board) PrintGame() {
-	var row uint8
+	var row int8
 	for row = 0; row < SIZE; row++ {
 		printRow(board.state[row])
 	}
 }
 
-func printRow(row [8]uint8) {
-	var col uint8
+func printRow(row [8]int8) {
+	var col int8
 	fmt.Printf("|")
 	for col = 0; col < SIZE; col++ {
 		fmt.Printf("%d|", row[col])
@@ -45,7 +45,7 @@ func printRow(row [8]uint8) {
 	fmt.Println()
 }
 
-func (board *Board) statusOfSquare(square *Square) uint8 {
+func (board *Board) statusOfSquare(square *Square) int8 {
 	return board.state[square.row][square.col]
 }
 
@@ -55,8 +55,8 @@ func (board *Board) validSquare(square *Square) bool {
 
 func (board *Board) validMove(move *Move) bool {
 
-	kingMove := (move.player.color == RED && board.statusOfSquare(&move.start) == RED_KING) ||
-		(move.player.color == BLACK && board.statusOfSquare(&move.start) == BLACK_KING)
+	playerColor := move.player.color
+	kingMove := board.isKingMove(&move.start, playerColor)
 
 	if !board.validSquare(&move.start) || !board.validSquare(&move.finish) {
 		return false
@@ -72,44 +72,94 @@ func (board *Board) validMove(move *Move) bool {
 		return false
 	}
 
-	adjacent := board.getAdjacent(&move.start)
-	for _, s := range adjacent {
-		if board.statusOfSquare(s) != EMPTY {
-			return false
+	availableMoves := board.getAvailableMoves(&move.start, playerColor)
+	for _, option := range availableMoves {
+		if &move.finish == option {
+			return true
 		}
 	}
 
-	return true
+	return false
 }
 
 func (board *Board) isPlayableSquare(square *Square) bool {
 	return board.isPlayableLocation(square.row, square.col)
 }
 
-func (board *Board) isPlayableLocation(row, col uint8) bool {
-	return (row+col)%2 == 1
+func (board *Board) isPlayableLocation(row, col int8) bool {
+	return board.validSquare(&Square{row, col}) && (row+col)%2 == 1
 }
 
-func (board *Board) getAdjacent(square *Square) []*Square {
-	adjacent := make([]*Square, 4)
+func (board *Board) isKingMove(start *Square, playerColor int8) bool {
+	return (playerColor == RED && board.statusOfSquare(start) == RED_KING) ||
+		(playerColor == BLACK && board.statusOfSquare(start) == BLACK_KING)
+}
 
-	var col, row uint8
-	for col = square.col - 1; col <= square.col+1; col++ {
-		for row = square.row - 1; row <= square.row+1; row++ {
-			if col == square.col && row == square.row {
-				continue
-			} else if !board.isPlayableLocation(row, col) {
-				continue
-			} else {
-				adjacent = append(adjacent, &Square{row, col})
-			}
+func (board *Board) getAvailableMoves(start *Square, playerColor int8) []*Square {
+	var playDirection Direction
+
+	if playerColor == RED {
+		playDirection = RED_FORWARD
+	} else {
+		playDirection = BLACK_FORWARD
+	}
+
+	options := make([]*Square, 0)
+	destination := board.searchForMoveInDirection(int8(playDirection), -1, start, playerColor)
+	if destination != nil {
+		options = append(options, destination)
+	}
+	destination = board.searchForMoveInDirection(int8(playDirection), 1, start, playerColor)
+	if destination != nil {
+		options = append(options, destination)
+	}
+
+	if board.isKingMove(start, playerColor) {
+		destination = board.searchForMoveInDirection(-1*int8(playDirection), -1, start, playerColor)
+		if destination != nil {
+			options = append(options, destination)
+		}
+		destination = board.searchForMoveInDirection(-1*int8(playDirection), 1, start, playerColor)
+		if destination != nil {
+			options = append(options, destination)
 		}
 	}
 
-	return adjacent
+	return options
 }
 
-func colorForRow(row uint8) uint8 {
+// TODO Better strategy for determining opponent pieces, including kings...
+func (board *Board) searchForMoveInDirection(dRow int8, dCol int8, start *Square, playerColor int8) *Square {
+
+	adjacentSquare := &Square{start.row + dRow, start.col + dCol}
+	if board.isPlayableSquare(adjacentSquare) {
+		status := board.statusOfSquare(adjacentSquare)
+		if status == EMPTY {
+			return adjacentSquare
+		} else if status == opponentOf(playerColor) {
+			jumpSquare := &Square{start.row + 2*dRow, start.col + 2*dCol}
+			if board.isPlayableSquare(adjacentSquare) {
+				status = board.statusOfSquare(jumpSquare)
+				if status == EMPTY {
+					return jumpSquare
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// FIXME Doesn't handle kings...
+func opponentOf(color int8) int8 {
+	if color == RED {
+		return BLACK
+	} else if color == BLACK {
+		return RED
+	}
+	return -1
+}
+
+func colorForRow(row int8) int8 {
 	if row < 3 {
 		return BLACK
 	} else {

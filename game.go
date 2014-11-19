@@ -1,7 +1,8 @@
 package main
 
-const DIRECTION_UP = 5
-const DIRECTION_DOWN = 6
+const RED_FORWARD = -1
+const BLACK_FORWARD = 1
+
 const SIMPLE = 7
 const JUMP = 8
 const KING = 9
@@ -18,14 +19,14 @@ type Game struct {
 }
 
 type Player struct {
-	color uint8
+	color int8
 }
 
 func (player *Player) getPlayDirection() Direction {
 	if player.color == RED {
-		return DIRECTION_UP
+		return RED_FORWARD
 	} else if player.color == BLACK {
-		return DIRECTION_DOWN
+		return BLACK_FORWARD
 	} else {
 		return -1
 	}
