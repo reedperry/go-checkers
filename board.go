@@ -105,22 +105,19 @@ func (board *Board) getAvailableMoves(start *Square, playerColor int8) []*Square
 	}
 
 	options := make([]*Square, 0)
-	destination := board.searchForMoveInDirection(int8(playDirection), -1, start, playerColor)
-	if destination != nil {
+	var destination *Square
+	if destination = board.searchForMoveInDirection(int8(playDirection), -1, start, playerColor); destination != nil {
 		options = append(options, destination)
 	}
-	destination = board.searchForMoveInDirection(int8(playDirection), 1, start, playerColor)
-	if destination != nil {
+	if destination = board.searchForMoveInDirection(int8(playDirection), 1, start, playerColor); destination != nil {
 		options = append(options, destination)
 	}
 
 	if board.isKingMove(start, playerColor) {
-		destination = board.searchForMoveInDirection(-1*int8(playDirection), -1, start, playerColor)
-		if destination != nil {
+		if destination = board.searchForMoveInDirection(-1*int8(playDirection), -1, start, playerColor); destination != nil {
 			options = append(options, destination)
 		}
-		destination = board.searchForMoveInDirection(-1*int8(playDirection), 1, start, playerColor)
-		if destination != nil {
+		if destination = board.searchForMoveInDirection(-1*int8(playDirection), 1, start, playerColor); destination != nil {
 			options = append(options, destination)
 		}
 	}
