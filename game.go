@@ -2,10 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
 )
-
-const RED_FORWARD = -1
-const BLACK_FORWARD = 1
 
 const SIMPLE = 7
 const JUMP = 8
@@ -26,23 +24,35 @@ type Player struct {
 	color int8
 }
 
-func (player *Player) getPlayDirection() Direction {
-	if player.color == RED {
-		return RED_FORWARD
-	} else if player.color == BLACK {
-		return BLACK_FORWARD
-	} else {
-		return -1
-	}
-}
-
-func (game *Game) doMove(start *Square, end *Square, player *Player) error {
+func (game *Game) DoMove(start *Square, end *Square, player *Player) error {
 	move := &Move{*start, *end, *player}
-	moveType := game.board.getMoveType(move)
+	moveType := game.board.MoveType(move)
 	if moveType != ILLEGAL {
-		game.board.state[move.finish.row][move.finish.col] = game.board.state[move.start.row][move.start.col]
-		game.board.state[move.start.row][move.start.col] = EMPTY
+		game.board.MovePiece(move)
+		game.moves = append(game.moves, *move)
 		return nil
 	}
-	return errors.New("Illegal move")
+
+	color := "Black"
+	if player.color == RED {
+		color = "Red"
+	}
+	return errors.New(fmt.Sprintf("Illegal move attempted by %v player: %v -> %v", color, *start, *end))
+}
+
+func (game *Game) Print() {
+	game.board.PrintGame()
+}
+
+func (game *Game) PrintMoves() {
+	fmt.Println()
+	for i, m := range game.moves {
+		fmt.Print(i+1, ": ")
+		if m.player.color == BLACK {
+			fmt.Print("Black ")
+		} else {
+			fmt.Print("Red ")
+		}
+		fmt.Println(m.start, "->", m.finish)
+	}
 }
