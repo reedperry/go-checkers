@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 const EMPTY = 0
 const BLACK = 1
@@ -34,6 +37,7 @@ func (board *Board) PrintGame() {
 	for row = 0; row < SIZE; row++ {
 		printRow(board.state[row])
 	}
+	fmt.Println()
 }
 
 func printRow(row [8]int8) {
@@ -144,6 +148,42 @@ func (board *Board) searchForMoveInDirection(dRow int8, dCol int8, start *Square
 		}
 	}
 	return nil
+}
+
+func (board *Board) getMoveType(move *Move) MoveType {
+	if !board.isPlayableSquare(&move.start) || !board.isPlayableSquare(&move.finish) {
+		return ILLEGAL
+	}
+
+	startStatus := board.statusOfSquare(&move.start)
+	endStatus := board.statusOfSquare(&move.finish)
+
+	// Again, doesn't handle kings yet...
+	if startStatus != move.player.color {
+		return ILLEGAL
+	}
+	if endStatus != EMPTY {
+		return ILLEGAL
+	}
+
+	moveSize := math.Abs(float64(move.start.row - move.finish.row))
+	if moveSize != math.Abs(float64(move.start.col-move.finish.col)) {
+		return ILLEGAL
+	}
+
+	var moveType MoveType = ILLEGAL
+	if moveSize == 1 {
+		moveType = SIMPLE
+	} else if moveSize == 2 {
+		moveType = JUMP
+	}
+
+	// TODO Check for reaching opponent's back line
+	if moveType != ILLEGAL {
+
+	}
+
+	return moveType
 }
 
 // FIXME Doesn't handle kings...

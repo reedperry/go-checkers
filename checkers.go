@@ -1,14 +1,12 @@
 package main
 
-import "fmt"
-
 func main() {
 	board := new(Board)
-
 	board.NewGame()
 	board.PrintGame()
-	moves := board.getAvailableMoves(&Square{5, 0}, RED)
-	for _, m := range moves {
-		fmt.Println("Available Move", *m)
-	}
+	game := new(Game)
+	game.board = *board
+	blackPlayer := &Player{BLACK}
+	game.doMove(&Square{2, 1}, &Square{3, 2}, blackPlayer)
+	game.board.PrintGame()
 }

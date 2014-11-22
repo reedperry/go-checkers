@@ -12,6 +12,10 @@ func TestNewGame(t *testing.T) {
 		t.Errorf("Square 0,0 should be empty.")
 	}
 
+	if board.state[0][1] == EMPTY {
+		t.Errorf("Square 0,1 should not be empty.")
+	}
+
 	if board.state[3][4] != EMPTY {
 		t.Errorf("Square 3,4 should be empty.")
 	}
