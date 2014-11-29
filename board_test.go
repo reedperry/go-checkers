@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -22,5 +23,109 @@ func TestNewGame(t *testing.T) {
 
 	if board.state[SIZE-1][SIZE-1] != EMPTY {
 		t.Errorf("Square %d, %d should be empty.", SIZE-1, SIZE-1)
+	}
+}
+
+func TestAreOpponents(t *testing.T) {
+	if !areOpponents(BLACK, RED) {
+		t.Errorf("BLACK and RED should be opponents.")
+	}
+
+	if areOpponents(RED, RED) {
+		t.Errorf("RED and RED should not be opponents.")
+	}
+
+	if !areOpponents(BLACK_KING, RED) {
+		t.Errorf("BLACK_KING and RED should be opponents.")
+	}
+
+	if !areOpponents(BLACK_KING, RED_KING) {
+		t.Errorf("BLACK_KING and RED_KING should be opponents.")
+	}
+
+	if areOpponents(BLACK, EMPTY) {
+		t.Errorf("BLACK and EMPTY should not be opponents.")
+	}
+
+	if areOpponents(RED_KING, EMPTY) {
+		t.Errorf("RED_KING and EMPTY should not be opponents.")
+	}
+
+	if areOpponents(EMPTY, EMPTY) {
+		t.Errorf("EMPTY and EMPTY should not be opponents.")
+	}
+}
+
+func TestAreTeammates(t *testing.T) {
+	if areTeammates(BLACK, RED) {
+		t.Errorf("BLACK and RED should not be teammates.")
+	}
+
+	if !areTeammates(RED, RED) {
+		t.Errorf("RED and RED should be teammates.")
+	}
+
+	if areTeammates(BLACK_KING, RED) {
+		t.Errorf("BLACK_KING and RED should not be teammates.")
+	}
+
+	if areTeammates(BLACK_KING, RED_KING) {
+		t.Errorf("BLACK_KING and RED_KING should not be teammates.")
+	}
+
+	if areTeammates(BLACK, EMPTY) {
+		t.Errorf("BLACK and EMPTY should not be teammates.")
+	}
+
+	if areTeammates(RED_KING, EMPTY) {
+		t.Errorf("RED_KING and EMPTY should not be teammates.")
+	}
+
+	if areTeammates(EMPTY, EMPTY) {
+		t.Errorf("EMPTY and EMPTY should not be teammates.")
+	}
+}
+
+func TestStartColorForRow(t *testing.T) {
+	if startColorForRow(0) != BLACK {
+		t.Errorf("Start color for row 0 should be BLACK.")
+	}
+
+	if startColorForRow((SIZE/2)-2) != BLACK {
+		t.Errorf(fmt.Sprintf("Start color for row %d should be BLACK.", (SIZE/2)-2))
+	}
+
+	if startColorForRow((SIZE/2)-1) != EMPTY {
+		t.Errorf(fmt.Sprintf("Start color for row %d should be EMPTY.", (SIZE/2)-1))
+	}
+
+	if startColorForRow(SIZE/2) != EMPTY {
+		t.Errorf(fmt.Sprintf("Start color for row %d should be EMPTY.", (SIZE / 2)))
+	}
+
+	if startColorForRow(SIZE) != RED {
+		t.Errorf(fmt.Sprintf("Start color for row %d should be RED.", SIZE))
+	}
+}
+
+func TestIsKing(t *testing.T) {
+	if isKing(BLACK) {
+		t.Errorf("BLACK is not a king.")
+	}
+
+	if isKing(RED) {
+		t.Errorf("RED is not a king.")
+	}
+
+	if isKing(EMPTY) {
+		t.Errorf("EMPTY is not a king.")
+	}
+
+	if !isKing(BLACK_KING) {
+		t.Errorf("BLACK_KING is a king.")
+	}
+
+	if !isKing(RED_KING) {
+		t.Errorf("RED_KING is a king.")
 	}
 }

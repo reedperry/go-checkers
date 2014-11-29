@@ -10,7 +10,6 @@ const JUMP = 8
 const KING = 9
 const ILLEGAL = -1
 
-type Direction int8
 type MoveType int8
 
 type Game struct {
@@ -29,6 +28,11 @@ func (game *Game) DoMove(start *Square, end *Square, player *Player) error {
 	moveType := game.board.MoveType(move)
 	if moveType != ILLEGAL {
 		game.board.MovePiece(move)
+		if moveType == JUMP {
+			game.board.CapturePiece(move)
+		} else if moveType == KING {
+			game.board.MakeKing(&move.finish)
+		}
 		game.moves = append(game.moves, *move)
 		return nil
 	}

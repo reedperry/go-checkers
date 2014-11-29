@@ -5,22 +5,23 @@ import (
 	"math"
 )
 
-const EMPTY = 0
-const BLACK = 1
-const RED = 2
-const BLACK_KING = 3
-const RED_KING = 4
+// Make it easy to tell what color occupies a space
+const BLACK_KING int8 = -2
+const BLACK int8 = -1
+const EMPTY int8 = 0
+const RED int8 = 1
+const RED_KING int8 = 2
 
-const RED_FORWARD = -1
-const BLACK_FORWARD = 1
+const RED_FORWARD int8 = -1
+const BLACK_FORWARD int8 = 1
 
-const SIZE = 8
+const SIZE int8 = 8
 
 type Board struct {
 	state [SIZE][SIZE]int8
 }
 
-func (player *Player) PlayDirection() Direction {
+func (player *Player) PlayDirection() int8 {
 	if player.color == RED {
 		return RED_FORWARD
 	} else if player.color == BLACK {
@@ -28,6 +29,15 @@ func (player *Player) PlayDirection() Direction {
 	} else {
 		return -1
 	}
+}
+
+func PlayDirectionOfColor(color int8) int8 {
+	if color == BLACK || color == BLACK_KING {
+		return BLACK_FORWARD
+	} else if color == RED || color == RED_KING {
+		return RED_FORWARD
+	}
+	return 0
 }
 
 func (board *Board) NewGame() {
@@ -39,7 +49,7 @@ func (board *Board) NewGame() {
 			if row == 3 || row == 4 || (row+col)%2 == 0 {
 				board.state[row][col] = EMPTY
 			} else {
-				board.state[row][col] = colorForRow(row)
+				board.state[row][col] = startColorForRow(row)
 			}
 		}
 	}
@@ -57,9 +67,26 @@ func printRow(row [8]int8) {
 	var col int8
 	fmt.Printf("|")
 	for col = 0; col < SIZE; col++ {
-		fmt.Printf("%d|", row[col])
+		fmt.Printf("%s|", symbolForStatus(row[col]))
 	}
 	fmt.Println()
+}
+
+func symbolForStatus(status int8) string {
+	switch status {
+	case EMPTY:
+		return " "
+	case BLACK:
+		return "b"
+	case BLACK_KING:
+		return "B"
+	case RED:
+		return "r"
+	case RED_KING:
+		return "R"
+	default:
+		return "?"
+	}
 }
 
 func (board *Board) StatusOfSquare(square *Square) int8 {
@@ -118,7 +145,7 @@ func (board *Board) MovePiece(move *Move) {
 }
 
 func (board *Board) AvailableMoves(start *Square, playerColor int8) []*Square {
-	var playDirection Direction
+	var playDirection int8
 
 	if playerColor == RED {
 		playDirection = RED_FORWARD
@@ -147,7 +174,6 @@ func (board *Board) AvailableMoves(start *Square, playerColor int8) []*Square {
 	return options
 }
 
-// TODO Better strategy for determining opponent pieces, including kings...
 func (board *Board) FindMoveInDirection(dRow int8, dCol int8, start *Square, playerColor int8) *Square {
 
 	adjacentSquare := &Square{start.row + dRow, start.col + dCol}
@@ -155,7 +181,7 @@ func (board *Board) FindMoveInDirection(dRow int8, dCol int8, start *Square, pla
 		status := board.StatusOfSquare(adjacentSquare)
 		if status == EMPTY {
 			return adjacentSquare
-		} else if status == opponentOf(playerColor) {
+		} else if areOpponents(playerColor, status) {
 			jumpSquare := &Square{start.row + 2*dRow, start.col + 2*dCol}
 			if board.PlayableSquare(adjacentSquare) {
 				status = board.StatusOfSquare(jumpSquare)
@@ -176,8 +202,7 @@ func (board *Board) MoveType(move *Move) MoveType {
 	startStatus := board.StatusOfSquare(&move.start)
 	endStatus := board.StatusOfSquare(&move.finish)
 
-	// Again, doesn't handle kings yet...
-	if startStatus != move.player.color {
+	if !areTeammates(startStatus, move.player.color) {
 		return ILLEGAL
 	}
 	if endStatus != EMPTY {
@@ -196,28 +221,94 @@ func (board *Board) MoveType(move *Move) MoveType {
 		moveType = JUMP
 	}
 
-	// TODO Check for reaching opponent's back line
-	if moveType != ILLEGAL {
+	// Check for reaching opponent's back line
+	if moveType != ILLEGAL && !isKing(startStatus) {
+		playerColor := playerColorOf(startStatus)
+		playDirection := PlayDirectionOfColor(playerColor)
 
+		if playDirection < 0 && move.finish.row == 0 {
+			moveType = KING
+		} else if playDirection > 0 && move.finish.row == SIZE-1 {
+			moveType = KING
+		}
 	}
 
 	return moveType
 }
 
-// FIXME Doesn't handle kings...
-func opponentOf(color int8) int8 {
-	if color == RED {
-		return BLACK
-	} else if color == BLACK {
-		return RED
+func (board *Board) CapturePiece(move *Move) bool {
+	captureRow := (move.finish.row + move.start.row) / 2
+	captureCol := (move.finish.col + move.start.col) / 2
+	captureSquare := &Square{captureRow, captureCol}
+
+	if !areOpponents(move.player.color, board.StatusOfSquare(captureSquare)) {
+		return false
 	}
-	return -1
+
+	board.state[captureRow][captureCol] = EMPTY
+	return true
 }
 
-func colorForRow(row int8) int8 {
-	if row < 3 {
-		return BLACK
+func (board *Board) MakeKing(square *Square) bool {
+	currentStatus := board.StatusOfSquare(square)
+	if isKing(currentStatus) {
+		return false
+	} else if currentStatus == EMPTY {
+		return false
 	} else {
+		board.state[square.row][square.col] = currentStatus * 2
+		return true
+	}
+}
+
+func isKing(status int8) bool {
+	return math.Abs(float64(status)) > 1
+}
+
+func playerColorOf(status int8) int8 {
+	if status == BLACK || status == BLACK_KING {
+		return BLACK
+	} else if status == RED || status == RED_KING {
 		return RED
+	} else {
+		return EMPTY
+	}
+}
+
+func areOpponents(color1, color2 int8) bool {
+	if color1 > 0 {
+		return color2 < 0
+	} else if color1 < 0 {
+		return color2 > 0
+	}
+	return false
+}
+
+func areTeammates(color1, color2 int8) bool {
+	if color1 > 0 {
+		return color2 > 0
+	} else if color1 < 0 {
+		return color2 < 0
+	}
+	return false
+}
+
+func startColorForRow(row int8) int8 {
+	rowsToFill := (SIZE / 2) - 1
+
+	if row < rowsToFill {
+		if BLACK_FORWARD > 0 {
+			return BLACK
+		} else {
+			return RED
+		}
+	} else if row == rowsToFill || row == rowsToFill+1 {
+		return EMPTY
+	} else {
+		if BLACK_FORWARD < 0 {
+			return BLACK
+		} else {
+			return RED
+		}
 	}
 }

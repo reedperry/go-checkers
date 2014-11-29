@@ -10,7 +10,7 @@ type Square struct {
 	row, col int8
 }
 
-func (move *Move) Direction() Direction {
+func (move *Move) Direction() int8 {
 	if move.start.row < move.finish.row {
 		return RED_FORWARD
 	} else {
