@@ -5,12 +5,6 @@ import (
 	"fmt"
 )
 
-const SIMPLE = 7
-const JUMP = 8
-const ILLEGAL = -1
-
-type MoveType int8
-
 type Game struct {
 	board       *Board
 	redPlayer   Player

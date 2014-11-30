@@ -1,5 +1,11 @@
 package main
 
+const SIMPLE = 7
+const JUMP = 8
+const ILLEGAL = -1
+
+type MoveType int8
+
 type Move struct {
 	start  Square
 	finish Square

@@ -194,7 +194,7 @@ func (board *Board) FindMoveInDirection(dRow int8, dCol int8, start *Square, pla
 			return adjacentSquare
 		} else if areOpponents(playerColor, status) {
 			jumpSquare := &Square{start.row + 2*dRow, start.col + 2*dCol}
-			if board.PlayableSquare(adjacentSquare) {
+			if board.PlayableSquare(jumpSquare) {
 				status = board.StatusOfSquare(jumpSquare)
 				if status == EMPTY {
 					return jumpSquare
