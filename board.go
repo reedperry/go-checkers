@@ -57,8 +57,10 @@ func (board *Board) NewGame() {
 
 func (board *Board) PrintGame() {
 	fmt.Println()
+	printColNumbers()
 	var row int8
 	for row = 0; row < SIZE; row++ {
+		fmt.Printf("%v ", row)
 		printRow(board.state[row])
 	}
 }
@@ -87,6 +89,15 @@ func symbolForStatus(status int8) string {
 	default:
 		return "?"
 	}
+}
+
+func printColNumbers() {
+	fmt.Print("  ")
+	var col int8 = 0
+	for col = 0; col < SIZE; col++ {
+		fmt.Printf(" %d", col)
+	}
+	fmt.Println()
 }
 
 func (board *Board) StatusOfSquare(square *Square) int8 {
@@ -194,24 +205,24 @@ func (board *Board) FindMoveInDirection(dRow int8, dCol int8, start *Square, pla
 	return nil
 }
 
-func (board *Board) MoveType(move *Move) MoveType {
+func (board *Board) MoveType(move *Move) (MoveType, bool) {
 	if !board.PlayableSquare(&move.start) || !board.PlayableSquare(&move.finish) {
-		return ILLEGAL
+		return ILLEGAL, false
 	}
 
 	startStatus := board.StatusOfSquare(&move.start)
 	endStatus := board.StatusOfSquare(&move.finish)
 
 	if !areTeammates(startStatus, move.player.color) {
-		return ILLEGAL
+		return ILLEGAL, false
 	}
 	if endStatus != EMPTY {
-		return ILLEGAL
+		return ILLEGAL, false
 	}
 
 	moveSize := math.Abs(float64(move.start.row - move.finish.row))
 	if moveSize != math.Abs(float64(move.start.col-move.finish.col)) {
-		return ILLEGAL
+		return ILLEGAL, false
 	}
 
 	var moveType MoveType = ILLEGAL
@@ -221,19 +232,20 @@ func (board *Board) MoveType(move *Move) MoveType {
 		moveType = JUMP
 	}
 
+	kingMove := false
 	// Check for reaching opponent's back line
 	if moveType != ILLEGAL && !isKing(startStatus) {
 		playerColor := playerColorOf(startStatus)
 		playDirection := PlayDirectionOfColor(playerColor)
 
 		if playDirection < 0 && move.finish.row == 0 {
-			moveType = KING
+			kingMove = true
 		} else if playDirection > 0 && move.finish.row == SIZE-1 {
-			moveType = KING
+			kingMove = true
 		}
 	}
 
-	return moveType
+	return moveType, kingMove
 }
 
 func (board *Board) CapturePiece(move *Move) bool {

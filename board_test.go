@@ -129,3 +129,24 @@ func TestIsKing(t *testing.T) {
 		t.Errorf("RED_KING is a king.")
 	}
 }
+
+func TestMakeKing(t *testing.T) {
+	board := new(Board)
+	board.state[5][6] = BLACK
+	board.state[6][5] = RED
+
+	game := new(Game)
+	game.board = board
+	blackPlayer := &Player{BLACK}
+
+	game.Print()
+	err := game.DoMove(&Square{5, 6}, &Square{7, 4}, blackPlayer)
+	game.Print()
+
+	if err != nil {
+		t.Errorf("Error during valid capture move.")
+	}
+	if board.StatusOfSquare(&Square{7, 4}) != BLACK_KING {
+		t.Errorf("Square [7, 4] should contain a black king.")
+	}
+}

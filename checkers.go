@@ -5,7 +5,7 @@ func main() {
 	board.NewGame()
 
 	game := new(Game)
-	game.board = *board
+	game.board = board
 
 	blackPlayer := &Player{BLACK}
 	redPlayer := &Player{RED}

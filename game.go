@@ -7,13 +7,12 @@ import (
 
 const SIMPLE = 7
 const JUMP = 8
-const KING = 9
 const ILLEGAL = -1
 
 type MoveType int8
 
 type Game struct {
-	board       Board
+	board       *Board
 	redPlayer   Player
 	blackPlayer Player
 	moves       []Move
@@ -25,12 +24,13 @@ type Player struct {
 
 func (game *Game) DoMove(start *Square, end *Square, player *Player) error {
 	move := &Move{*start, *end, *player}
-	moveType := game.board.MoveType(move)
+	moveType, kingMove := game.board.MoveType(move)
 	if moveType != ILLEGAL {
 		game.board.MovePiece(move)
 		if moveType == JUMP {
 			game.board.CapturePiece(move)
-		} else if moveType == KING {
+		}
+		if kingMove {
 			game.board.MakeKing(&move.finish)
 		}
 		game.moves = append(game.moves, *move)
