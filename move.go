@@ -1,8 +1,10 @@
 package main
 
-const SIMPLE = 7
-const JUMP = 8
-const ILLEGAL = -1
+const (
+	SINGLE  = 1
+	JUMP    = 2
+	ILLEGAL = -1
+)
 
 type MoveType int8
 
@@ -16,7 +18,12 @@ type Square struct {
 	row, col int8
 }
 
-func (move *Move) Direction() int8 {
+type Turn struct {
+	moves []Move
+	score int
+}
+
+func (move *Move) Direction() Direction {
 	if move.start.row < move.finish.row {
 		return RED_FORWARD
 	} else {

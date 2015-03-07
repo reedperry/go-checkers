@@ -2,10 +2,10 @@ package main
 
 func main() {
 	board := new(Board)
-	board.NewGame()
 
 	game := new(Game)
 	game.board = board
+	game.NewGame()
 
 	blackPlayer := &Player{BLACK}
 	redPlayer := &Player{RED}

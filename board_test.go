@@ -9,19 +9,19 @@ func TestNewGame(t *testing.T) {
 	board := new(Board)
 	board.NewGame()
 
-	if board.state[0][0] != EMPTY {
+	if board[0][0] != EMPTY {
 		t.Errorf("Square 0,0 should be empty.")
 	}
 
-	if board.state[0][1] == EMPTY {
+	if board[0][1] == EMPTY {
 		t.Errorf("Square 0,1 should not be empty.")
 	}
 
-	if board.state[3][4] != EMPTY {
+	if board[3][4] != EMPTY {
 		t.Errorf("Square 3,4 should be empty.")
 	}
 
-	if board.state[SIZE-1][SIZE-1] != EMPTY {
+	if board[SIZE-1][SIZE-1] != EMPTY {
 		t.Errorf("Square %d, %d should be empty.", SIZE-1, SIZE-1)
 	}
 }
@@ -132,8 +132,8 @@ func TestIsKing(t *testing.T) {
 
 func TestMakeKing(t *testing.T) {
 	board := new(Board)
-	board.state[5][6] = BLACK
-	board.state[6][5] = RED
+	board[5][6] = BLACK
+	board[6][5] = RED
 
 	game := new(Game)
 	game.board = board
